@@ -90,7 +90,7 @@
                 <a href="technician/techManager.php">Manage Technicians</a>
                 <a href="customer/customerManagement.php">Manage Customers</a>
                 <a href="incident/getcustomer.php">Create Incident</a>
-                <a href="admin/login.php">Assign Incident</a>
+                <a href="incident/assign.php">Assign Incident</a>
                 <a href="admin/login.php">Display Incidents</a>
                 <a href="admin/login.php">Administrator Login</a>
             </div>

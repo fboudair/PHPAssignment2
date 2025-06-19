@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../data/db.php'; // getting the customer idea from database 
+require_once __DIR__ . '/../data/db.php';
 
 $customerID = isset($_GET['customerID']) ? intval($_GET['customerID']) : 0;
 $successMessage = '';
@@ -7,11 +7,11 @@ $error = '';
 $title = '';
 $description = '';
 $selectedProduct = '';
-//if customer idea not found finish this page
+
 if ($customerID === 0) {
     die("Invalid customer ID.");
 }
-//getting the customer details from the data base
+
 $stmt = $db->prepare('SELECT * FROM customers WHERE customerID = :id');
 $stmt->bindValue(':id', $customerID);
 $stmt->execute();
@@ -20,7 +20,7 @@ $customer = $stmt->fetch();
 if (!$customer) {
     die("Customer not found.");
 }
-//getting all products submit it by the current customer 
+
 $stmt = $db->prepare('
     SELECT p.productCode, p.name 
     FROM products p 
@@ -30,43 +30,33 @@ $stmt = $db->prepare('
 $stmt->bindValue(':customerID', $customerID);
 $stmt->execute();
 $products = $stmt->fetchAll();
-//creating a form to get information of incident 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $selectedProduct = $_POST['productCode'] ?? '';
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
-//check if all the field have data
-    if ($selectedProduct && $title && $description) {
-        $stmtTech = $db->query('SELECT techID FROM technicians ORDER BY RAND() LIMIT 1');
-        $randomTech = $stmtTech->fetch();
-        $randomTechID = $randomTech ? $randomTech['techID'] : null;
 
-        if ($randomTechID === null) {
-            $error = "No technician available to assign.";
-        } else { // insert new row in the incident table
-            $stmt = $db->prepare('
-                INSERT INTO incidents (customerID, productCode, title, description, dateOpened, dateClosed, techID)
-                VALUES (:customerID, :productCode, :title, :description, NOW(), NULL, :techID)
-            ');
-            $stmt->execute([
-                ':customerID' => $customerID,
-                ':productCode' => $selectedProduct,
-                ':title' => $title,
-                ':description' => $description,
-                ':techID' => $randomTechID
-            ]);
-// if the row was add it create this message
-            $successMessage = "Incident successfully added.";
-            $title = '';
-            $description = '';
-            $selectedProduct = '';
-        }
+    if ($selectedProduct && $title && $description) {
+        $stmt = $db->prepare('
+            INSERT INTO incidents (customerID, productCode, title, description, dateOpened, dateClosed, techID)
+            VALUES (:customerID, :productCode, :title, :description, NOW(), NULL, NULL)
+        ');
+        $stmt->execute([
+            ':customerID' => $customerID,
+            ':productCode' => $selectedProduct,
+            ':title' => $title,
+            ':description' => $description
+        ]);
+
+        $successMessage = "Incident successfully added.";
+        $title = '';
+        $description = '';
+        $selectedProduct = '';
     } else {
         $error = "All fields are required.";
     }
 }
 
-// Fetch incidents for this customer, including customerID and description
 $stmt = $db->prepare('
     SELECT incidentID, customerID, productCode, title, description, techID, dateOpened, dateClosed
     FROM incidents
@@ -76,6 +66,7 @@ $stmt = $db->prepare('
 $stmt->execute([':customerID' => $customerID]);
 $incidents = $stmt->fetchAll();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -168,7 +159,7 @@ $incidents = $stmt->fetchAll();
     <hr>
 
     <h2>Create Incident</h2>
-    <!--display the sucess message -->
+
     <?php if ($successMessage): ?>
         <p class="message-success"><?= htmlspecialchars($successMessage) ?></p>
     <?php elseif ($error): ?>
@@ -176,7 +167,7 @@ $incidents = $stmt->fetchAll();
     <?php endif; ?>
 
     <?php if (count($products) === 0): ?>
-        <p>This customer has not registered any products.</p>     <!-- creaating a table to show a table of incident  to related to this customer -->
+        <p>This customer has not registered any products.</p>
     <?php else: ?>
         <form action="" method="post">
             <label><strong>Customer ID:</strong></label>
@@ -191,30 +182,24 @@ $incidents = $stmt->fetchAll();
                     </option>
                 <?php endforeach; ?>
             </select>
-    <!-- display the date of incident was create it -->
 
             <label><strong>Date Opened:</strong></label>
             <input type="text" value="<?= date('Y-m-d H:i:s') ?>" readonly>
-    <!-- display the date of incident was close -->
 
             <label><strong>Date Closed:</strong></label>
             <input type="text" value="" readonly>
-    <!-- display the title of incident -->
 
             <label for="title"><strong>Title:</strong></label>
             <input type="text" name="title" id="title" value="<?= htmlspecialchars($title) ?>" required>
-    <!-- display the description -->
 
             <label for="description"><strong>Description:</strong></label>
             <textarea name="description" id="description" rows="5" required><?= htmlspecialchars($description) ?></textarea>
-    <!-- a button to create the incident -->
 
             <button type="submit">Create Incident</button>
         </form>
     <?php endif; ?>
 
     <h3 style="margin-top: 40px;">Previous Incidents</h3>
-    <!-- da table that choose previous incident creating that customer -->
 
     <?php if (count($incidents) > 0): ?>
         <table>
@@ -232,12 +217,12 @@ $incidents = $stmt->fetchAll();
                 </tr>
             </thead>
             <tbody>
-            <?php foreach ($incidents as $incident): ?>
+            <?php foreach ($incidents as $incident): ?> 
                 <tr>
                     <td><?= htmlspecialchars($incident['incidentID']) ?></td>
                     <td><?= htmlspecialchars($incident['customerID']) ?></td>
                     <td><?= htmlspecialchars($incident['productCode']) ?></td>
-                    <td><?= htmlspecialchars($incident['techID']) ?></td>
+<td><?= htmlspecialchars($incident['techID'] ?? 'Unassigned') ?></td>
                     <td><?= htmlspecialchars($incident['dateOpened']) ?></td>
                     <td><?= htmlspecialchars($incident['dateClosed'] ?? '') ?></td>
                     <td><?= htmlspecialchars($incident['title']) ?></td>
