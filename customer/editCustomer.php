@@ -1,23 +1,25 @@
 <?php
 require_once __DIR__ . '/../data/db.php';
-
+// Retrieve customer ID from URL query string or set to null
 $customerID = $_GET['customerID'] ?? null;
+// Initialize error and success messages
 $error = '';
 $success = '';
-
+// If no customerID was provided, terminate the script
 if (!$customerID) {
     die('Customer ID not provided.');
 }
-
+// Fetch customer data using a prepared statement
 $stmt = $db->prepare('SELECT * FROM customers WHERE customerID = ?');
 $stmt->execute([$customerID]);
 $customer = $stmt->fetch();
-
+// If no customer is found with that ID, stop the script
 if (!$customer) {
     die('Customer not found.');
 }
-
+// If the form was submitted using POST method
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Sanitize and assign all input fields
     $firstname = $_POST['firstname'] ?? '';
     $lastname = $_POST['lastname'] ?? '';
     $address = $_POST['address'] ?? '';
@@ -27,9 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $countryCode = $_POST['countryCode'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $email = $_POST['email'] ?? '';
-
+    // Validate required fields
     if ($firstname && $lastname && $email) {
         try {
+                        // Prepare update query using named placeholders
             $query = "UPDATE customers SET
                 firstname = :firstname,
                 lastname = :lastname,
@@ -41,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 phone = :phone,
                 email = :email
                 WHERE customerID = :customerID";
-
+            // Execute the query with user-provided data
             $stmt = $db->prepare($query);
             $stmt->execute([
                 ':firstname' => $firstname,
@@ -85,17 +88,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <form method="post">
     <table style="margin-top: 10px; border-collapse: collapse;">
         <?php
+                // Define fields: key = input name, value = label shown to user
         $fields = [
             'firstname' => 'First Name', 'lastname' => 'Last Name', 'address' => 'Address', 'city' => 'City',
             'state' => 'State', 'postalCode' => 'Postal Code', 'countryCode' => 'Country Code',
             'phone' => 'Phone', 'email' => 'Email'
         ];
+                // Loop through each field to dynamically generate table rows with labels and input boxes
         foreach ($fields as $name => $label) {
             $value = htmlspecialchars($customer[$name]);
+                        // Make certain fields required (first name, last name, email)
             $required = in_array($name, ['firstname', 'lastname', 'email']) ? 'required' : '';
+                        // Set input width based on field name (e.g., email and address get more space)
             $width = ($name === 'email' || $name === 'address') ? '350px' : '200px';
+                        // Choose input type: email for 'email' field, text for others
             $type = $name === 'email' ? 'email' : 'text';
-
+            // Render the HTML for each table row
             echo "<tr>";
             echo "<td style='padding: 8px; text-align: left;'><label for='{$name}' style='font-weight: bold;'>{$label}:</label></td>";
             echo "<td style='padding: 8px;'>";

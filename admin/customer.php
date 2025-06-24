@@ -1,27 +1,29 @@
 <?php
 session_start();
 require_once __DIR__ . '/../data/db.php';
-
+// Initialize variables for error messages and email input
 $error = '';
 $email = '';
-
+// Check if the form was submitted using POST method
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
-
+    // Validate that the entered value is a proper email format
     if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                // Prepare a SQL statement to find a customer with the given email
         $stmt = $db->prepare("SELECT * FROM customers WHERE email = :email");
-        $stmt->bindValue(':email', $email);
-        $stmt->execute();
-        $customer = $stmt->fetch();
+        $stmt->bindValue(':email', $email); // Bind the email value to the SQL parameter
+        $stmt->execute(); // execute the quert
+        $customer = $stmt->fetch(); //fetch the customer
 
         if ($customer) {
+            // If customer found, store their data in the session and redirect to register
             $_SESSION['customer'] = $customer;
             header("Location: register.php");
-            exit;
-        } else {
+            exit; // Stop further script execution
+        } else {             // If no matching customer found, show error message
             $error = "No customer found with that email.";
         }
-    } else {
+    } else {         // Show error if the email format is invalid
         $error = "Please enter a valid email.";
     }
 }

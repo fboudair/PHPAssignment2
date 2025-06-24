@@ -1,8 +1,17 @@
 <?php
 require_once __DIR__ . '/../data/db.php';
-
-$query = $db->query('SELECT * FROM customers ORDER BY lastname');
-$customers = $query->fetchAll();
+// Get the 'search' query from the URL (GET request), default to an empty string if not provided
+$search = $_GET['search'] ?? '';
+if ($search !== '') {
+    // If a search term is entered, prepare a parameterized query using LIKE
+    $stmt = $db->prepare('SELECT * FROM customers WHERE lastname LIKE :search ORDER BY lastname');
+    $stmt->execute([':search' => '%' . $search . '%']);
+} else {
+        // If no search term, just select all customers
+    $stmt = $db->query('SELECT * FROM customers ORDER BY lastname');
+}
+// Fetch all matching customers into an array
+$customers = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -16,10 +25,18 @@ $customers = $query->fetchAll();
     <h1>SportsPro Technical Support</h1>
     <p>Sports management software for sports enthusiasts</p>
     <p><a href="../index.php" style="font-weight: bold; color: #0000EE; text-decoration: underline;">Home</a></p>
-
     <hr style="height: 3px; background-color: black; border: none;">
-    <h2>Customers</h2>
+    <h2>Customer Search</h2>
     <p><a href="addCustomer.php" style="font-weight: bold;">Add New Customer</a></p>
+    <form method="get" action="" style="margin-bottom: 20px;">
+    <label for="search">Last Name:</label>
+    <input type="text" name="search" id="search" value="<?= htmlspecialchars($search) ?>" />
+    <button type="submit">Search</button>
+    <?php if ($search): ?>
+        <a href="customers.php" style="margin-left: 10px;">Clear</a>
+    <?php endif; ?>
+</form>
+    <h2>Results</h2>
 
     <table cellpadding="8" border="1" style="border-collapse: collapse; width: 100%;">
         <tr style="background-color: #dbeafe;">
@@ -37,6 +54,7 @@ $customers = $query->fetchAll();
         </tr>
         <?php foreach ($customers as $cust): ?>
         <tr>
+                    <!-- Loop through all customer records and display each row -->
             <td><?= htmlspecialchars($cust['customerID']) ?></td>
             <td><?= htmlspecialchars($cust['firstname']) ?></td>
             <td><?= htmlspecialchars($cust['lastname']) ?></td>
@@ -48,6 +66,7 @@ $customers = $query->fetchAll();
             <td><?= htmlspecialchars($cust['phone']) ?></td>
             <td><?= htmlspecialchars($cust['email']) ?></td>
             <td>
+                                <!-- Edit and Delete links -->
                 <a href="editCustomer.php?customerID=<?= urlencode($cust['customerID']) ?>">Edit</a> |
                 <a href="deleteCustomer.php?customerID=<?= urlencode($cust['customerID']) ?>" onclick="return confirm('Are you sure you want to delete this customer?')">Delete</a>
             </td>

@@ -1,26 +1,27 @@
 <?php
-require_once __DIR__ . '/../data/db.php';
+require_once __DIR__ . '/../data/db.php'; // get to customer ID from the url by settingit to 0 if not provide
 
 $customerID = isset($_GET['customerID']) ? intval($_GET['customerID']) : 0;
-$successMessage = '';
+$successMessage = ''; //initialize variables for success/error messages and form data
 $error = '';
 $title = '';
 $description = '';
 $selectedProduct = '';
 
+// if no valid customer ID is provided, stop the script
 if ($customerID === 0) {
     die("Invalid customer ID.");
 }
-
+// get customer information from database
 $stmt = $db->prepare('SELECT * FROM customers WHERE customerID = :id');
 $stmt->bindValue(':id', $customerID);
 $stmt->execute();
 $customer = $stmt->fetch();
-
+// if the customer doesnt exist stop the script
 if (!$customer) {
     die("Customer not found.");
 }
-
+// get all products that customer has registered
 $stmt = $db->prepare('
     SELECT p.productCode, p.name 
     FROM products p 
@@ -30,14 +31,15 @@ $stmt = $db->prepare('
 $stmt->bindValue(':customerID', $customerID);
 $stmt->execute();
 $products = $stmt->fetchAll();
-
+//if the form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $selectedProduct = $_POST['productCode'] ?? '';
+    $selectedProduct = $_POST['productCode'] ?? ''; //get submitted form data
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
 
-    if ($selectedProduct && $title && $description) {
-        $stmt = $db->prepare('
+    if ($selectedProduct && $title && $description) { //check it all fields are filled
+        // insert new incident into the database
+        $stmt = $db->prepare(' 
             INSERT INTO incidents (customerID, productCode, title, description, dateOpened, dateClosed, techID)
             VALUES (:customerID, :productCode, :title, :description, NOW(), NULL, NULL)
         ');
@@ -47,16 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':title' => $title,
             ':description' => $description
         ]);
-
+// show success message and rest form values
         $successMessage = "Incident successfully added.";
         $title = '';
         $description = '';
         $selectedProduct = '';
-    } else {
+    } else { //show error if any field is missing
         $error = "All fields are required.";
     }
 }
-
+// get all previous incident for this customer
 $stmt = $db->prepare('
     SELECT incidentID, customerID, productCode, title, description, techID, dateOpened, dateClosed
     FROM incidents

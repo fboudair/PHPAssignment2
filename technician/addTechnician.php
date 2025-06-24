@@ -2,12 +2,13 @@
 require_once __DIR__ . '/../data/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Retrieve form input values
     $firstName = $_POST['firstName'];
     $lastName = $_POST['lastName'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $phone = $_POST['phone'];
-
+    // Basic validation check
     $sql = 'INSERT INTO technicians (firstName, lastName, email, password, phone) VALUES (?, ?, ?, ?, ?)';
     $stmt = $db->prepare($sql);
     $stmt->execute([$firstName, $lastName, $email, $password, $phone]);

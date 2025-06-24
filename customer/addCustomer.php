@@ -1,10 +1,11 @@
 <?php
 require_once __DIR__ . '/../data/db.php';
-
+// Initialize error and success messages
 $error = '';
 $success = '';
-
+// Check if the form has been submitted using POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Collect and sanitize form inputs using null coalescing operator
     $firstname = $_POST['firstname'] ?? '';
     $lastname = $_POST['lastname'] ?? '';
     $address = $_POST['address'] ?? '';
@@ -15,18 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = $_POST['phone'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
-
+    // Validate password length
     if (strlen($password) > 20) {
         $error = "Password must not exceed 20 characters.";
     }
-
+    // Check if required fields are filled and no errors so far
     if ($firstname && $lastname && $email && $password && !$error) {
         try {
+                        // Prepare the SQL insert statement using named placeholders
             $query = "INSERT INTO customers 
                 (firstname, lastname, address, city, state, postalCode, countryCode, phone, email, password) 
                 VALUES 
                 (:firstname, :lastname, :address, :city, :state, :postalCode, :countryCode, :phone, :email, :password)";
-            
+                        // Prepare and execute the statement securely
             $stmt = $db->prepare($query);
             $stmt->execute([
                 ':firstname' => $firstname,
@@ -40,11 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':email' => $email,
                 ':password' => password_hash($password, PASSWORD_DEFAULT)
             ]);
-
+            // Success message after insertion
             $success = "Customer added successfully!";
         } catch (PDOException $e) {
             $error = "Error: " . $e->getMessage();
-        }
+        }         // Catch case when required fields are missing
     } elseif (!$error) {
         $error = "Please fill in all required fields.";
     }

@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../data/db.php';
-
+// SQL query to retrieve all technicians and count their open incidents
 $sql = "SELECT t.techID, t.firstName, t.lastName, t.email,
         (
             SELECT COUNT(*) 
@@ -10,22 +10,19 @@ $sql = "SELECT t.techID, t.firstName, t.lastName, t.email,
         ) AS openIncidents
         FROM technicians t
         ORDER BY t.lastName, t.firstName";
-
+// Prepare and execute the query
 $stmt = $db->prepare($sql);
 $stmt->execute();
+// Fetch all technicians into an array
 $technicians = $stmt->fetchAll();
-
+// Initialize message (can be used later for status messages)
 $message = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['techID']) && isset($_SESSION['selectedIncidentID'])) {
-    $techID = $_POST['techID'];
-    $incidentID = $_SESSION['selectedIncidentID'];
-
-    $updateStmt = $db->prepare("UPDATE incidents SET techID = :techID WHERE incidentID = :incidentID");
-    $updateStmt->execute([':techID' => $techID, ':incidentID' => $incidentID]);
-
-    $message = "Incident #$incidentID has been assigned to technician ID #$techID.";
-    unset($_SESSION['selectedIncidentID']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['techID'])) {
+    $_SESSION['selectedTechID'] = $_POST['techID'];
+        // Redirect to confirmation page
+    header("Location: confirm.php");
+    exit;
 }
 ?>
 

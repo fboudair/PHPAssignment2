@@ -1,24 +1,26 @@
 <?php
 require_once __DIR__ . '/../data/db.php';
+// Get the product code from the URL query parameter (e.g., edit.php?productCode=P123)
 $code = $_GET['productCode'];
-
+// Check if the form was submitted using POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Retrieve submitted form values
     $name = $_POST['name'];
     $version = $_POST['version'];
     $releaseDate = $_POST['releaseDate'];
-
+    // Prepare and execute the SQL UPDATE statement
     $sql = 'UPDATE products SET name = ?, version = ?, releaseDate = ? WHERE productCode = ?';
     $stmt = $db->prepare($sql);
     $stmt->execute([$name, $version, $releaseDate, $code]);
-
+    // Prepare and execute the SQL UPDATE statement
     header('Location: index.php');
     exit();
 }
-
+    // Prepare and execute the SQL UPDATE statement
 $stmt = $db->prepare('SELECT * FROM products WHERE productCode = ?');
 $stmt->execute([$code]);
 $product = $stmt->fetch();
-
+// If no product is found with the given code, display an error and stop execution
 if (!$product) {
     echo "Product not found.";
     exit();

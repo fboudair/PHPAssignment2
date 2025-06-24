@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../data/db.php';
-
+// Fetch all technicians from the database, ordered by last name
 $query = $db->query('SELECT * FROM technicians ORDER BY lastName');
 $technicians = $query->fetchAll();
 ?>
@@ -20,8 +20,9 @@ $technicians = $query->fetchAll();
     <hr style="height: 3px; background-color: black; border: none;">
 
     <h2 style="margin-top: 20px;">Technicians</h2>
+        <!-- Link to add a new technician -->
     <p><a href="addTechnician.php" style="font-weight: bold;">Add New Technician</a></p>
-
+    <!-- Technician table: displays all technicians with actions -->
     <table cellpadding="8" border="1" style="border-collapse: collapse; width: 100%;">
         <tr style="background-color: #dbeafe;">
             <th>ID</th>
@@ -32,6 +33,7 @@ $technicians = $query->fetchAll();
             <th>Phone</th>
             <th>Actions</th>
         </tr>
+                <!-- Loop through each technician and display their data -->
         <?php foreach ($technicians as $tech): ?>
         <tr>
             <td><?= htmlspecialchars($tech['techID']) ?></td>
@@ -41,6 +43,7 @@ $technicians = $query->fetchAll();
             <td><?= htmlspecialchars($tech['password']) ?></td>
             <td><?= htmlspecialchars($tech['phone']) ?></td>
             <td>
+                                <!-- Action links: Edit and Delete -->
                 <a href="editTechnician.php?techID=<?= urlencode($tech['techID']) ?>">Edit</a> |
                 <a href="deleteTechnician.php?techID=<?= urlencode($tech['techID']) ?>" onclick="return confirm('Are you sure?')">Delete</a>
             </td>

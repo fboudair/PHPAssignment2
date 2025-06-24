@@ -3,27 +3,30 @@ session_start();
 require_once __DIR__ . '/../data/db.php';
 
 if (!isset($_SESSION['customer'])) {
-    header("Location: customer_login.php");
+    header("Location: customerLogin.php");
     exit;
 }
 
 $customer = $_SESSION['customer'];
 $registrationMessage = '';
 $registrationError = '';
-
+// Fetch all products from the database to display in dropdown
 $query = $db->query('SELECT * FROM products ORDER BY name');
 $products = $query->fetchAll();
-
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productCode = $_POST['productCode'] ?? '';
-
+    // Get selected product code
     if ($productCode) {
+                // Check if this product is already registered by the customer
         $check = $db->prepare("SELECT * FROM registrations WHERE customerID = :cid AND productCode = :pc");
         $check->execute([':cid' => $customer['customerID'], ':pc' => $productCode]);
 
         if ($check->fetch()) {
+                    // Check if this product is already registered by the customer
             $registrationError = "This product is already registered.";
         } else {
+                        // Register product for the customer
             $stmt = $db->prepare("INSERT INTO registrations (customerID, productCode, registrationDate)
                                   VALUES (:cid, :pc, CURDATE())");
             if ($stmt->execute([':cid' => $customer['customerID'], ':pc' => $productCode])) {
@@ -33,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } else {
+                // If no product was selected
         $registrationError = "Please select a product.";
     }
 }

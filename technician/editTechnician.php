@@ -1,26 +1,27 @@
 <?php
+// Include database connection
 require_once __DIR__ . '/../data/db.php';
 $techID = $_GET['techID'];
-
+// Get technician ID from URL query string
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $firstName = $_POST['firstName'];
     $lastName = $_POST['lastName'];
     $email = $_POST['email'];
-    $password = $_POST['password'];
+    $password = $_POST['password']; // Note: this should be hashed in real applications
     $phone = $_POST['phone'];
-
+    // Prepare and execute SQL update statement
     $sql = 'UPDATE technicians SET firstName = ?, lastName = ?, email = ?, password = ?, phone = ? WHERE techID = ?';
     $stmt = $db->prepare($sql);
     $stmt->execute([$firstName, $lastName, $email, $password, $phone, $techID]);
-
+    // Redirect to technicians list after update
     header('Location: techManager.php');
     exit();
 }
-
+// If page is accessed via GET, fetch technician data
 $stmt = $db->prepare('SELECT * FROM technicians WHERE techID = ?');
 $stmt->execute([$techID]);
 $technician = $stmt->fetch();
-
+// If technician not found, display error and stop
 if (!$technician) {
     echo "Technician not found.";
     exit();

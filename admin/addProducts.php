@@ -1,16 +1,17 @@
 <?php
 require_once __DIR__ . '/../data/db.php';
-
+// Check if the form has been submitted via POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Retrieve form values from the POST request
     $code = $_POST['productCode'];
     $name = $_POST['name'];
     $version = $_POST['version'];
     $releaseDate = $_POST['releaseDate'];
-
+    // Retrieve form values from the POST request
     $sql = 'INSERT INTO products (productCode, name, version, releaseDate) VALUES (?, ?, ?, ?)';
     $stmt = $db->prepare($sql);
     $stmt->execute([$code, $name, $version, $releaseDate]);
-
+    // Redirect to the product list page after successful insertion
     header('Location: index.php');
     exit();
 }

@@ -1,20 +1,20 @@
 <?php
 session_start();
-require_once __DIR__ . '/../data/db.php';  
-
+require_once __DIR__ . '/../data/db.php';  // create database connection file
+// sql query get incident that are not yet assigned to any tech
 $sql = "SELECT i.incidentID, c.firstname, c.lastname, i.productCode, i.dateOpened, i.title, i.description
         FROM incidents i
         JOIN customers c ON i.customerID = c.customerID
         WHERE i.techID IS NULL
         ORDER BY i.dateOpened";
 
-$stmt = $db->prepare($sql);
-$stmt->execute();
-$incidents = $stmt->fetchAll();
-
+$stmt = $db->prepare($sql); // prepare and run the query
+$stmt->execute(); 
+$incidents = $stmt->fetchAll();  // get all incident into an array
+// if the user submitted the form and selected an incident
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['incidentID'])) {
-    $_SESSION['selectedIncidentID'] = $_POST['incidentID'];
-    header("Location: select.php");
+    $_SESSION['selectedIncidentID'] = $_POST['incidentID']; //save the select incident ID into the session
+    header("Location: select.php"); //redirect to select php page for futher actions
     exit;
 }
 ?>
